@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getCamera } from './mediaHandler';
+import { getCamera } from './helpers/mediaHandler';
 import Peer from 'simple-peer';
 export default class PeerConnection extends Component {
 	constructor(props) {

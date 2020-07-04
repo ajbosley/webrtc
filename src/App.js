@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
-import WebsocketConnection from './WebsocketConnection';
+import WebsocketConnection from './component/WebsocketConnection';
 import io from 'socket.io-client';
-import { getCamera } from './mediaHandler';
+import { getCamera } from './helpers/mediaHandler';
 import 'webrtc-adapter';
 import Peer from 'simple-peer';
 export default class App extends React.Component {
@@ -131,8 +131,8 @@ export default class App extends React.Component {
 						setRoomJoined={value => this.setState({ roomJoined: value })}
 					/>
 				)}
-				{this.state.canCall && <button onClick={this.startCall}>Call other person</button>}
 				<video ref={this.videoRef}></video>
+				{this.state.canCall && <button onClick={this.startCall}>Call other person</button>}
 				<video ref={this.incomingVideoRef}></video>
 			</div>
 		);
