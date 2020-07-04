@@ -3,18 +3,32 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.3.2",
-    "@testing-library/user-event": "^7.1.2",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-scripts": "3.4.1"
+    "@testing-library/jest-dom": "4.2.x",
+    "@testing-library/react": "9.3.x",
+    "@testing-library/user-event": "7.1.x",
+    "express": "4.17.x",
+    "react": "16.13.x",
+    "react-dom": "16.13.x",
+    "react-scripts": "3.4.x",
+    "simple-peer": "^9.7.2",
+    "socket.io": "2.3.x",
+    "socket.io-client": "2.3.x",
+    "webrtc-adapter": "7.6.x"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.1.x",
+    "eslint": "6.6.x",
+    "eslint-config-prettier": "6.11.x",
+    "eslint-plugin-import": "2.21.x",
+    "eslint-plugin-react": "7.20.x",
+    "prettier": "1.19.x"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "format": "prettier --write \"**/*.{js,jsx,json,md}\""
   },
   "eslintConfig": {
     "extends": "react-app"

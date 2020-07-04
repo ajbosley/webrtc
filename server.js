@@ -8,11 +8,11 @@ app.use(express.static(__dirname + '/public'));
 
 io.on('connection', function(socket) {
 	socket.on('join', data => {
-		if (data.roomId && data.roomPassword) {
+		if (data.roomId && data.password) {
 			// validate room exists and password is correct
 			// if valid join room
 			// add await
-			const isValid = validDetails(data.roomId, data.roomPassword);
+			const isValid = validDetails(data.roomId, data.password);
 			if (isValid) {
 				socket.join(data.roomId);
 				socket.emit('roomJoined');
@@ -20,7 +20,7 @@ io.on('connection', function(socket) {
 				// get number of people in the room
 				if (numClientsInRoom(data.roomId) === 2) {
 					// First peer to the party is initiator
-					io.to(data.roomId).emit('peerConnected');
+					socket.emit('peerConnected');
 					console.log('peersConnected ', data.roomId);
 				}
 			} else {

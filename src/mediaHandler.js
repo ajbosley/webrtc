@@ -11,8 +11,7 @@ function isViable() {
 	return (
 		navigator.mediaDevices &&
 		navigator.mediaDevices.enumerateDevices &&
-		navigator.mediaDevices.getUserMedia &&
-		Peer.WEBRTC_SUPPORT
+		navigator.mediaDevices.getUserMedia
 	);
 }
 
@@ -33,21 +32,20 @@ async function getDevices() {
 		});
 }
 
-function getCamera(constraints, videoRef) {
+function getCamera(constraints) {
 	// get media devices based on constraints
 	return new Promise((resolve, reject) => {
-		navigator
-			.getUserMedia(constraints)
-			.then(myVideoStream => {
-				// set videoRef srcObject
-				videoRef.srcObject = myVideoStream;
-				videoRef.play();
-				resolve(myVideoStream);
-			})
-			.catch(err => {
+		navigator.getUserMedia(
+			constraints,
+			stream => {
+				resolve(stream);
+			},
+			error => {
 				//TODO handle error getting media, probably rejected by user or doesn't exist
+
 				reject({ error: 'true' });
-			});
+			}
+		);
 	});
 }
 
@@ -97,15 +95,17 @@ function swapStream(peer, currentStream, constraints) {
 				peer.replaceTrack(oldAudioTracks[0], newAudioTracks[0], currentStream);
 			}
 			return true;
+
+			function exists(type) {
+				if (type === 'audio') {
+					return typeof oldAudioTracks !== 'undefined' && typeof oldAudioTracks[0] !== 'undefined';
+				} else {
+					return typeof oldVideoTracks !== 'undefined' && typeof oldVideoTracks[0] !== 'undefined';
+				}
+			}
 		})
 		.catch(handleCameraError);
-	function exists(type) {
-		if (type === 'audio') {
-			return typeof oldAudioTracks !== 'undefined' && typeof oldAudioTracks[0] !== 'undefined';
-		} else {
-			return typeof oldVideoTracks !== 'undefined' && typeof oldVideoTracks[0] !== 'undefined';
-		}
-	}
+
 	function handleCameraError(err) {
 		console.log(err);
 		return false;
