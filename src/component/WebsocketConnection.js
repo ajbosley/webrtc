@@ -11,7 +11,6 @@ class WebsocketConnection extends Component {
 			handleMissingDetails,
 			handleStartCall,
 			handleReceiveOffer,
-			handleReceiveAnswer,
 		} = this.props;
 
 		socket.on('connect', () => {
@@ -28,7 +27,6 @@ class WebsocketConnection extends Component {
 		socket.on('missingDetails', handleMissingDetails);
 		socket.on('peerConnected', handleStartCall);
 		socket.on('backOffer', handleReceiveOffer);
-		socket.on('backAnswer', handleReceiveAnswer);
 		socket.on('offerReceived', () => console.log('server received offer'));
 		socket.on('answerReceived', () => console.log('server received answer'));
 		function joinRoom(password, roomId) {

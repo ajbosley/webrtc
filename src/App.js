@@ -32,8 +32,7 @@ export default class App extends React.Component {
 		function handleReceiveOffer(offer) {
 			console.log('handling received offer');
 			if (!this.state.sentAnswer) {
-				this.setState({ sentAnswer: true });
-				console.log('sending answer');
+				this.state.sentAnswer = true;
 				// get media devices based on constraints
 				getCamera(this.state.constraints, this.videoRef.current)
 					.then(stream => {
@@ -45,33 +44,25 @@ export default class App extends React.Component {
 							this.videoRef.current.play();
 							// create peer
 							const peer = this.createPeer(false, stream, offer);
-							// create answer
-							peer.on('signal', answer => {
-								// send answer
-								this.socket.current.emit('frontAnswer', {
-									answer: answer,
-									roomId: this.state.roomId,
-								});
-							});
-							// set incoming signal as offer
-							peer.signal(offer);
+
 							this.peerRef.current = peer;
 						}
 					})
 					.catch(this.handleError);
 			}
 		}
-		function handleReceiveAnswer(answer) {
+		function handleReceiveAnswer() {
 			console.log('handling received answer');
 			if (!this.state.gotAnswer) {
+				console.log('here');
 				// peerRef exists, was created by handleReceiveOffer
 				// no longer calling, isInCall
 				this.setState({ gotAnswer: true });
-				this.peerRef.current.signal(answer);
 				console.log('set new answer');
 			}
 		}
 		function handleCreateOffer(offer) {
+			console.log('creating offer');
 			if (!this.state.gotAnswer) {
 				this.socket.current.emit('frontOffer', { offer: offer, roomId: this.state.roomId });
 			}
@@ -82,26 +73,69 @@ export default class App extends React.Component {
 			// get camera stream
 			getCamera(constraints, this.videoRef.current)
 				.then(stream => {
+					this.videoRef.current.srcObject = stream;
+					this.videoRef.current.play();
 					// create initiator peer
 					const peer = this.createPeer(true, stream);
-					// initiator creates offer
-					peer.on('signal', offer => {
-						this.handleCreateOffer(offer, roomId);
-					});
 					this.peerRef.current = peer;
 				})
 				.catch(this.handleError);
 		}
-		function createPeer(isInitiator, stream) {
+		function createPeer(isInitiator, stream, offer) {
+			console.log('created peer');
 			// create new peer
 			let peer = new Peer({
 				initiator: isInitiator,
 				stream: stream,
 				trickle: false,
-				config: { iceServer: { urls: 'stun:stun.l.google.com:19302' } },
+				config: {
+					iceServer: {
+						urls: 'stun:stun.l.google.com:19302',
+					},
+				},
 			});
-			// create video for incoming peer when stream available
-			peer.on('stream', incomingStream => {
+			if (isInitiator) {
+				// create video for incoming peer when stream available
+				peer.on('stream', incomingStream => {
+					this.incomingVideoRef.current.srcObject = incomingStream;
+					this.incomingVideoRef.current.play();
+				});
+				// initiator creates offer
+				peer.on('signal', offer => {
+					if (!this.state.gotAnswer) {
+						this.handleCreateOffer(offer, this.state.roomId);
+					}
+				});
+
+				this.socket.current.on('backAnswer', signal => {
+					if (!this.state.gotAnswer) {
+						console.log('received answer');
+						this.setState({ gotAnswer: true });
+					}
+					peer.signal(signal);
+				});
+			}
+			if (!isInitiator && offer) {
+				console.log('signalled offer');
+				// set incoming signal as offer
+				peer.signal(offer);
+				this.socket.current.on('backOffer', signal => {
+					console.log('received answer');
+					this.setState({ gotAnswer: true });
+					peer.signal(signal);
+				});
+				// create answer
+				peer.on('signal', answer => {
+					// send answer
+					console.log('sending answer');
+					this.socket.current.emit('frontAnswer', {
+						answer: answer,
+						roomId: this.state.roomId,
+					});
+				});
+			}
+			peer.on('stream', stream => {
+				console.log('applying incoming stream');
 				this.incomingVideoRef.current.srcObject = stream;
 				this.incomingVideoRef.current.play();
 			});
@@ -126,14 +160,13 @@ export default class App extends React.Component {
 						handleIncorrectDetails={() => console.log('incorrect details')}
 						handleMissingDetails={() => console.log('missing details')}
 						handleStartCall={this.handleStartCall}
-						handleReceiveOffer={this.handleReceiveOffer}
-						handleReceiveAnswer={this.handleReceiveAnswer}
 						setRoomJoined={value => this.setState({ roomJoined: value })}
+						handleReceiveOffer={this.handleReceiveOffer}
 					/>
 				)}
 				<video ref={this.videoRef}></video>
 				{this.state.canCall && <button onClick={this.startCall}>Call other person</button>}
-				<video ref={this.incomingVideoRef}></video>
+				<video ref={this.incomingVideoRef} autoplay playsInline></video>
 			</div>
 		);
 	}

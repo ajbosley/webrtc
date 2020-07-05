@@ -35,7 +35,7 @@ io.on('connection', function(socket) {
 
 	socket.on('frontOffer', data => {
 		if (data.offer && data.roomId) {
-			io.to(data.roomId).emit('backOffer', data.offer);
+			socket.to(data.roomId).emit('backOffer', data.offer);
 			// tell initiator their offer has been sent
 			socket.emit('offerReceived');
 			console.log('offerReceived and sent to peer ', data.roomId);
@@ -43,7 +43,7 @@ io.on('connection', function(socket) {
 	});
 	socket.on('frontAnswer', data => {
 		if (data.answer && data.roomId) {
-			io.to(data.roomId).emit('backAnswer', data.answer);
+			socket.to(data.roomId).emit('backAnswer', data.answer);
 			// tell receiver answer sent
 			socket.emit('answerReceived');
 			console.log('answerReceived and sent to peer ', data.roomId);
