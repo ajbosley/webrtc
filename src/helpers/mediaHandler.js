@@ -26,7 +26,6 @@ async function getDevices() {
 				devices.forEach(device => {
 					switch (device.kind) {
 						case 'audioinput':
-							console.log(device);
 							audioDevices.push(device);
 							break;
 						case 'videoinput':
