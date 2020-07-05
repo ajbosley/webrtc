@@ -29,6 +29,7 @@ class WebsocketConnection extends Component {
 		socket.on('backOffer', handleReceiveOffer);
 		socket.on('offerReceived', () => console.log('server received offer'));
 		socket.on('answerReceived', () => console.log('server received answer'));
+		socket.on('roomFull', () => console.log('room is full'));
 		function joinRoom(password, roomId) {
 			socket.emit('join', { roomId, password });
 		}
