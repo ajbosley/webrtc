@@ -16,20 +16,32 @@ function isViable() {
 }
 
 async function getDevices() {
-	const audioDevices = [],
+	let audioDevices = [],
 		videoDevices = [];
-	// List cameras and microphones.
-	await navigator.mediaDevices
-		.enumerateDevices()
-		.then(devices => {
-			devices.forEach(device => {
-				device.kind === 'audio' ? audioDevices.push(device) : videoDevices.push(device);
+	return new Promise((resolve, reject) => {
+		// List cameras and microphones.
+		navigator.mediaDevices
+			.enumerateDevices()
+			.then(devices => {
+				devices.forEach(device => {
+					switch (device.kind) {
+						case 'audioinput':
+							console.log(device);
+							audioDevices.push(device);
+							break;
+						case 'videoinput':
+							videoDevices.push(device);
+							break;
+						default:
+							break;
+					}
+				});
+				resolve({ audioDevices, videoDevices });
+			})
+			.catch(function(err) {
+				reject({ error: 'An error occurred' });
 			});
-			return { audioDevices, videoDevices };
-		})
-		.catch(function(err) {
-			return { error: 'An error occurred' };
-		});
+	});
 }
 
 function getCamera(constraints) {
