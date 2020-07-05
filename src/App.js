@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
 import WebsocketConnection from './component/WebsocketConnection';
 import io from 'socket.io-client';
-import { getCamera } from './helpers/mediaHandler';
+import { getCamera, toggleAudioIncoming, getDevices } from './helpers/mediaHandler';
 import 'webrtc-adapter';
 import Peer from 'simple-peer';
 export default class App extends React.Component {
@@ -18,8 +18,10 @@ export default class App extends React.Component {
 		this.videoRef = createRef();
 		this.incomingVideoRef = createRef();
 		this.peerRef = createRef();
+		this.localStream = createRef();
 		this.handleStartCall = handleStartCall.bind(this);
 		this.startCall = startCall.bind(this);
+		this.startOwnCamera = startOwnCamera.bind(this);
 		this.handleReceiveOffer = handleReceiveOffer.bind(this);
 		this.handleCreateOffer = handleCreateOffer.bind(this);
 		this.handleReceiveAnswer = handleReceiveAnswer.bind(this);
@@ -95,11 +97,6 @@ export default class App extends React.Component {
 				},
 			});
 			if (isInitiator) {
-				// create video for incoming peer when stream available
-				peer.on('stream', incomingStream => {
-					this.incomingVideoRef.current.srcObject = incomingStream;
-					this.incomingVideoRef.current.play();
-				});
 				// initiator creates offer
 				peer.on('signal', offer => {
 					if (!this.state.gotAnswer) {
@@ -134,20 +131,36 @@ export default class App extends React.Component {
 					});
 				});
 			}
-			peer.on('stream', stream => {
-				console.log('applying incoming stream');
-				this.incomingVideoRef.current.srcObject = stream;
+			// create video for incoming peer when stream available
+			peer.on('stream', incomingStream => {
+				this.incomingVideoRef.current.srcObject = incomingStream;
 				this.incomingVideoRef.current.play();
 			});
 			return peer;
 		}
-
+		async function startOwnCamera(videoRef) {
+			console.log('started own camera');
+			const { constraints } = this.state;
+			// get camera stream
+			await getCamera(constraints, videoRef.current)
+				.then(stream => {
+					videoRef.current.srcObject = stream;
+					videoRef.current.muted = true;
+					videoRef.current.play();
+					this.localStream.current = stream;
+					return stream;
+				})
+				.catch(this.handleError);
+		}
 		function createIncomingVideo(stream) {
 			console.log(stream);
 		}
 	}
 	componentWillMount() {
 		this.socket.current = io.connect('localhost:80/', { transports: ['websocket'] });
+		getDevices().then(devices => {
+			this.setState({ devices });
+		});
 	}
 	render() {
 		return (
@@ -164,9 +177,11 @@ export default class App extends React.Component {
 						handleReceiveOffer={this.handleReceiveOffer}
 					/>
 				)}
-				<video ref={this.videoRef}></video>
+				<video ref={this.videoRef} muted></video>
+				<button onClick={() => this.startOwnCamera(this.videoRef)}>Start own Camera</button>
+				<button onClick={() => toggleAudioIncoming(this.incomingVideoRef)}>Toggle Speaker</button>
 				{this.state.canCall && <button onClick={this.startCall}>Call other person</button>}
-				<video ref={this.incomingVideoRef} autoplay playsInline></video>
+				<video ref={this.incomingVideoRef} autoPlay playsInline autopictureinpicture='true'></video>
 			</div>
 		);
 	}
