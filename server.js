@@ -14,14 +14,26 @@ io.on('connection', function(socket) {
 			// add await
 			const isValid = validDetails(data.roomId, data.password);
 			if (isValid) {
-				socket.join(data.roomId);
-				socket.emit('roomJoined');
-				console.log('roomJoined ', data.roomId);
 				// get number of people in the room
-				if (numClientsInRoom(data.roomId) === 2) {
-					// First peer to the party is initiator
-					socket.emit('peerConnected');
-					console.log('peersConnected ', data.roomId);
+				const num = numClientsInRoom(data.roomId);
+				switch (num) {
+					case 0:
+						socket.join(data.roomId);
+						socket.emit('roomJoined');
+						console.log('roomJoined ', data.roomId);
+						break;
+					case 1:
+						socket.join(data.roomId);
+						socket.emit('roomJoined');
+						console.log('roomJoined ', data.roomId);
+						io.in(data.roomId).emit('peerConnected');
+						console.log('peersConnected ', data.roomId);
+						break;
+					case 2:
+						socket.emit('roomFull');
+						break;
+					default:
+						break;
 				}
 			} else {
 				// invalid password or roomId
@@ -55,8 +67,12 @@ io.on('connection', function(socket) {
 });
 
 function numClientsInRoom(room) {
-	const clients = io.nsps['/'].adapter.rooms[room].sockets;
-	return Object.keys(clients).length;
+	try {
+		const clients = io.nsps['/'].adapter.rooms[room].sockets;
+		return Object.keys(clients).length;
+	} catch (error) {
+		return 0;
+	}
 }
 // async
 function validDetails(roomId, password) {
