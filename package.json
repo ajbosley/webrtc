@@ -11,7 +11,7 @@
     "react-dom": "16.13.x",
     "react-scripts": "3.4.x",
     "simple-peer": "^9.7.2",
-    "socket.io": "2.3.x",
+    "socket.io": "2.4.x",
     "socket.io-client": "2.3.x",
     "webrtc-adapter": "7.6.x"
   },
