@@ -9,7 +9,7 @@
     "express": "4.17.x",
     "react": "16.13.x",
     "react-dom": "16.13.x",
-    "react-scripts": "3.4.x",
+    "react-scripts": "5.0.x",
     "simple-peer": "^9.7.2",
     "socket.io": "2.3.x",
     "socket.io-client": "2.3.x",
